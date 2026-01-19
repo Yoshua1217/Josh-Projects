@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookkeeping Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --primary-accent: #6c757d;
+            --breeze-accent: #4a90e2;
+            --text-main: #333333;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { font-weight: 300; letter-spacing: 1px; margin-bottom: 10px; }
+
+        /* Breeze Button Style */
+        .breeze-btn {
+            display: inline-block;
+            background-color: var(--breeze-accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+        }
+
+        .breeze-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--primary-accent);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary-accent);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .group-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 15px 0 8px 0;
+        }
+
+        /* Link Styling */
+        .link-item {
+            display: block;
+            padding: 10px 0;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: color 0.2s;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        .link-item:hover { color: var(--breeze-accent); }
+        .link-item:last-child { border-bottom: none; }
+
+        /* Input Feature for Expense Claims */
+        .input-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 5px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Bookkeeping Dashboard</h1>
+        <a href="https://gospelcentre.breezechms.com/login/?redirect=https://gospelcentre.breezechms.com/payments/add" target="_blank" class="breeze-btn">Open Breeze Login</a>
+    </header>
+
+    <div class="grid">
+        <div class="section-card">
+            <div class="section-title">Giving</div>
+            
+            <div class="group-label">Cash and Cheque (CS)</div>
+            <a href="https://yoshua1217.github.io/Josh-Projects/CSTape.html" target="_blank" class="link-item">CS Tape</a>
+            <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgCzBwy2XxbWQKZgv6TQpHg3AcVDB4bz3rc4hxqUuFjzDNE?e=8I80ge" target="_blank" class="link-item">CS Upload Folder</a>
+            <a href="https://gospelcentre-my.sharepoint.com/:x:/p/kkirsch/IQAHz0DUWp6RSbZ3BqtQk4HlAXZHaj8QSgvEIJWSGIseWE8?e=NLcH8i" target="_blank" class="link-item">Receipts</a>
+
+            <div class="group-label">ETransfer (eT)</div>
+            <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgCkgFZSOIjKTqPXGkHiOjK0AdR6qb-IwGNoQjI6-9je_60?e=ETg3dI" target="_blank" class="link-item">eT Folder</a>
+            <a href="https://gospelcentre-my.sharepoint.com/:x:/p/kkirsch/IQA0EnpHIWlKSaqjJ5ICOoQXAVzRpJNq8uJ2eRviVNhFP1g?e=df6uoC" target="_blank" class="link-item">eT Spreadsheet</a>
+
+            <div class="group-label">Online Giving (OG)</div>
+            <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgBGqKTVgVkMToepcVLCTCiNAT9QZ3f4jyzu9z6ydb-5WbE?e=YJO86V" target="_blank" class="link-item">OG Folder</a>
+            <a href="https://gospelcentre.breezechms.com/login/?redirect=https://gospelcentre.breezechms.com/payments/add" target="_blank" class="link-item">Breeze Quick-Add</a>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">Expense Claims (ExpC)</div>
+            <div id="expense-list">
+                </div>
+            
+            <div class="input-group">
+                <input type="text" id="linkName" placeholder="Link Name">
+                <input type="text" id="linkUrl" placeholder="URL">
+                <button class="add-btn" onclick="addLink()">+</button>
+            </div>
+            <p style="font-size: 0.7rem; color: #999; margin-top: 10px;">*Links added here are temporary (refreshing the page clears them).</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addLink() {
+        const name = document.getElementById('linkName').value;
+        const url = document.getElementById('linkUrl').value;
+        
+        if(name && url) {
+            const container = document.getElementById('expense-list');
+            const newLink = document.createElement('a');
+            newLink.href = url.startsWith('http') ? url : 'https://' + url;
+            newLink.target = '_blank';
+            newLink.className = 'link-item';
+            newLink.innerText = name;
+            
+            container.appendChild(newLink);
+            
+            // Clear inputs
+            document.getElementById('linkName').value = '';
+            document.getElementById('linkUrl').value = '';
+        }
+    }
+</script>
+
+</body>
+</html>
