@@ -13,6 +13,7 @@
             --text: #f1f5f9;
             --text-dim: #94a3b8;
             --glass-border: rgba(255, 255, 255, 0.1);
+            --danger: #ef4444;
         }
 
         body {
@@ -51,7 +52,6 @@
 
         .breeze-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
 
-        /* Dashboard Grid Setup */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -64,13 +64,16 @@
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 24px;
-            transition: transform 0.3s ease;
+            position: relative;
         }
 
-        /* Forces Expense Card to take full width */
-        .full-width {
-            grid-column: 1 / -1;
-            margin-top: 10px;
+        .full-width { grid-column: 1 / -1; margin-top: 10px; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         .card-title {
@@ -78,13 +81,30 @@
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 20px;
             font-weight: 700;
+            margin: 0;
+        }
+
+        /* Toggle Button Styling */
+        .manage-toggle {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .manage-toggle.active {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
         }
 
         .link-grid { display: grid; gap: 12px; }
 
-        /* Sub-grid for the wide Expense card */
         .exp-columns {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -101,7 +121,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: background 0.2s;
+            transition: all 0.2s;
             border: 1px solid transparent;
         }
 
@@ -110,19 +130,32 @@
             border-color: var(--accent);
         }
 
-        .link-card span.type-tag { font-size: 0.7rem; color: var(--text-dim); }
-
+        /* Hidden Delete State */
         .delete-btn {
-            color: #ef4444;
+            display: none;
+            color: var(--danger);
             cursor: pointer;
             font-weight: bold;
             padding: 0 5px;
             margin-left: 10px;
-            opacity: 0.6;
         }
-        .delete-btn:hover { opacity: 1; }
 
-        /* Floating Action Button */
+        /* Manage Mode Active States */
+        body.manage-mode .delete-btn { display: inline-block; }
+        body.manage-mode .link-card {
+            animation: shake 0.5s infinite linear;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(0.5deg); }
+            75% { transform: rotate(-0.5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .type-tag { font-size: 0.7rem; color: var(--text-dim); }
+
         .fab {
             position: fixed;
             bottom: 30px;
@@ -141,7 +174,6 @@
             z-index: 10;
         }
 
-        /* Overlay */
         #overlay {
             display: none;
             position: fixed;
@@ -161,8 +193,6 @@
             max-width: 400px;
             border: 1px solid var(--accent);
         }
-
-        .modal h3 { margin-top: 0; color: var(--accent); }
 
         .modal input {
             width: 100%;
@@ -185,17 +215,9 @@
             margin-top: 10px;
             cursor: pointer;
         }
-
-        .close-modal {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            cursor: pointer;
-        }
     </style>
 </head>
-<body>
+<body id="bodyTag">
 
 <div class="container">
     <header>
@@ -205,7 +227,7 @@
 
     <div class="dashboard-grid">
         <div class="card">
-            <div class="card-title">Cash & Cheque (CS)</div>
+            <div class="card-header"><p class="card-title">Cash & Cheque (CS)</p></div>
             <div class="link-grid">
                 <a href="https://yoshua1217.github.io/Josh-Projects/CSTape.html" target="_blank" class="link-card">CS Tape <span class="type-tag">External</span></a>
                 <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgCzBwy2XxbWQKZgv6TQpHg3AcVDB4bz3rc4hxqUuFjzDNE?e=8I80ge" target="_blank" class="link-card">Upload Folder <span class="type-tag">SharePoint</span></a>
@@ -214,7 +236,7 @@
         </div>
 
         <div class="card">
-            <div class="card-title">E-Transfer (eT)</div>
+            <div class="card-header"><p class="card-title">E-Transfer (eT)</p></div>
             <div class="link-grid">
                 <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgCkgFZSOIjKTqPXGkHiOjK0AdR6qb-IwGNoQjI6-9je_60?e=ETg3dI" target="_blank" class="link-card">eT Folder <span class="type-tag">SharePoint</span></a>
                 <a href="https://gospelcentre-my.sharepoint.com/:x:/p/kkirsch/IQA0EnpHIWlKSaqjJ5ICOoQXAVzRpJNq8uJ2eRviVNhFP1g?e=df6uoC" target="_blank" class="link-card">eT Spreadsheet <span class="type-tag">Excel</span></a>
@@ -222,7 +244,7 @@
         </div>
 
         <div class="card">
-            <div class="card-title">Online Giving (OG)</div>
+            <div class="card-header"><p class="card-title">Online Giving (OG)</p></div>
             <div class="link-grid">
                 <a href="https://gospelcentre-my.sharepoint.com/:f:/p/kkirsch/IgBGqKTVgVkMToepcVLCTCiNAT9QZ3f4jyzu9z6ydb-5WbE?e=YJO86V" target="_blank" class="link-card">OG Folder <span class="type-tag">SharePoint</span></a>
                 <a href="https://gospelcentre.breezechms.com/login/?redirect=https://gospelcentre.breezechms.com/payments/add" target="_blank" class="link-card">Breeze Login <span class="type-tag">Direct</span></a>
@@ -230,9 +252,11 @@
         </div>
 
         <div class="card full-width">
-            <div class="card-title">Expense Claims (ExpC)</div>
-            <div id="expense-container" class="exp-columns">
-                </div>
+            <div class="card-header">
+                <p class="card-title">Expense Claims (ExpC)</p>
+                <button class="manage-toggle" id="toggleBtn" onclick="toggleManageMode()">Manage</button>
+            </div>
+            <div id="expense-container" class="exp-columns"></div>
         </div>
     </div>
 </div>
@@ -241,16 +265,25 @@
 
 <div id="overlay">
     <div class="modal">
-        <h3>Add Expense Link</h3>
+        <h3 style="margin-top:0; color:var(--accent)">Add Expense Link</h3>
         <input type="text" id="linkTitle" placeholder="Label (e.g. Travel Claim)">
         <input type="text" id="linkUrl" placeholder="URL">
         <button onclick="saveLink()">Add to Dashboard</button>
-        <div class="close-modal" onclick="toggleModal(false)">Cancel</div>
+        <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-dim); cursor:pointer;" onclick="toggleModal(false)">Cancel</div>
     </div>
 </div>
 
 <script>
     const container = document.getElementById('expense-container');
+    const body = document.getElementById('bodyTag');
+    const toggleBtn = document.getElementById('toggleBtn');
+
+    function toggleManageMode() {
+        body.classList.toggle('manage-mode');
+        const isActive = body.classList.contains('manage-mode');
+        toggleBtn.innerText = isActive ? 'Done' : 'Manage';
+        toggleBtn.classList.toggle('active', isActive);
+    }
 
     function toggleModal(show) {
         document.getElementById('overlay').style.display = show ? 'flex' : 'none';
@@ -263,7 +296,6 @@
             const div = document.createElement('div');
             div.className = 'link-card';
             
-            // Link wrapper
             const a = document.createElement('a');
             a.href = link.url.startsWith('http') ? link.url : 'https://' + link.url;
             a.target = '_blank';
@@ -272,7 +304,6 @@
             a.style.flexGrow = '1';
             a.innerHTML = `${link.title} <span class="type-tag" style="margin-left:8px;">Link</span>`;
             
-            // Delete button
             const del = document.createElement('span');
             del.className = 'delete-btn';
             del.innerHTML = '✕';
@@ -302,10 +333,12 @@
     }
 
     function deleteLink(index) {
-        let saved = JSON.parse(localStorage.getItem('expenseLinks')) || [];
-        saved.splice(index, 1);
-        localStorage.setItem('expenseLinks', JSON.stringify(saved));
-        refreshLinks();
+        if(confirm("Delete this link?")) {
+            let saved = JSON.parse(localStorage.getItem('expenseLinks')) || [];
+            saved.splice(index, 1);
+            localStorage.setItem('expenseLinks', JSON.stringify(saved));
+            refreshLinks();
+        }
     }
 
     window.onload = refreshLinks;
