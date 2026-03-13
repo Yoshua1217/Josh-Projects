@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Timer</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .wrap { width: 100%; max-width: 480px; }
+    .title { font-size: 22px; font-weight: 500; color: #fff; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 2rem; font-weight: 300; }
+    .card { background: #111; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+    .input-group label { display: block; font-size: 10px; color: #666; margin-bottom: 6px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+    .input-group input { width: 100%; padding: 10px 12px; font-size: 15px; font-weight: 400; font-family: 'DM Sans', sans-serif; color: #fff; background: #1a1a1a; border: 0.5px solid rgba(255,255,255,0.12); border-radius: 8px; outline: none; transition: border-color 0.15s; }
+    .input-group input:focus { border-color: rgba(255,255,255,0.35); }
+    .calc-row { background: #1a1a1a; border-radius: 8px; padding: 12px 16px; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .calc-item { font-size: 13px; color: #666; }
+    .calc-item span { font-weight: 500; color: #ccc; font-family: 'DM Mono', monospace; font-size: 12px; }
+    .start-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; background: #fff; color: #111; cursor: pointer; transition: opacity 0.15s; margin-top: 1.25rem; letter-spacing: 0.01em; }
+    .start-btn:hover { opacity: 0.85; }
+
+    .timer-card { display: none; text-align: center; }
+    .phase-badge { display: inline-block; padding: 5px 16px; border-radius: 99px; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.25rem; }
+    .phase-study { background: rgba(34,197,94,0.12); color: #4ade80; border: 0.5px solid rgba(74,222,128,0.25); }
+    .phase-rest  { background: rgba(59,130,246,0.12); color: #60a5fa; border: 0.5px solid rgba(96,165,250,0.25); }
+    .round-label { font-size: 13px; color: #555; margin-bottom: 1.25rem; font-weight: 300; letter-spacing: 0.02em; }
+
+    .ring-wrap { position: relative; width: 210px; height: 210px; margin: 0 auto 1.25rem; }
+    .ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+    .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; }
+    .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+    .time-display { font-size: 46px; font-weight: 400; font-family: 'DM Mono', monospace; color: #fff; letter-spacing: -1px; line-height: 1; }
+    .time-sub { font-size: 11px; color: #444; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 400; }
+
+    .rounds-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .round-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); background: transparent; transition: background 0.3s, border-color 0.3s; }
+    .round-dot.done-study { background: #4ade80; border-color: #4ade80; }
+    .round-dot.done-rest  { background: #60a5fa; border-color: #60a5fa; }
+    .round-dot.active     { border-color: rgba(255,255,255,0.6); }
+
+    .btn-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .pause-btn { padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #666; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em; }
+    .pause-btn:hover { opacity: 0.7; }
+    .reset-link { display: block; margin-top: 1.25rem; font-size: 12px; color: #444; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; letter-spacing: 0.02em; }
+
+    .waiting-card { display: none; text-align: center; }
+    .waiting-title { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
+    .waiting-label { font-size: 14px; color: #666; margin-bottom: 1.5rem; font-weight: 300; }
+
+    .auto-ring-wrap { position: relative; width: 72px; height: 72px; margin: 0 auto 1.25rem; }
+    .auto-ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+    .auto-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 4; }
+    .auto-fill  { fill: none; stroke-width: 4; stroke-linecap: round; }
+    .auto-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .auto-count { font-size: 22px; font-weight: 400; font-family: 'DM Mono', monospace; color: #fff; }
+
+    .waiting-btns { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .action-btn { padding: 11px 24px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.01em; }
+    .action-btn:hover { opacity: 0.85; }
+    .action-btn.study-action { background: #4ade80; color: #111; }
+    .action-btn.rest-action  { background: #60a5fa; color: #111; }
+    .skip-btn { padding: 11px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #555; cursor: pointer; transition: opacity 0.15s; }
+    .skip-btn:hover { opacity: 0.7; }
+
+    .done-card { display: none; text-align: center; }
+    .done-icon  { font-size: 28px; margin-bottom: 1rem; }
+    .done-title { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; color: #fff; letter-spacing: -0.01em; }
+    .done-sub   { font-size: 14px; color: #555; margin-bottom: 1.5rem; font-weight: 300; }
+
+    @media (max-width: 380px) { .input-row { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="title">Pomodoro timer</p>
+  <p class="subtitle">Set your total time and the app divides it into rounds.</p>
+
+  <div class="card" id="setupCard">
+    <div class="input-row">
+      <div class="input-group"><label>Study (mins)</label><input type="number" id="studyInput" value="60" min="0.1" step="any" /></div>
+      <div class="input-group"><label>Rest (mins)</label><input type="number" id="restInput" value="30" min="0.1" step="any" /></div>
+      <div class="input-group"><label>Rounds</label><input type="number" id="roundsInput" value="3" min="1" max="99" step="1" /></div>
+    </div>
+    <div class="calc-row">
+      <div class="calc-item">Study per round: <span id="calcStudy">20:00</span></div>
+      <div class="calc-item">Rest per round: <span id="calcRest">10:00</span></div>
+    </div>
+    <button class="start-btn" onclick="startSession()">Start session</button>
+  </div>
+
+  <div class="card timer-card" id="timerCard">
+    <div class="phase-badge phase-study" id="phaseBadge">Studying</div>
+    <p class="round-label" id="roundLabel">Round 1 of 3</p>
+    <div class="ring-wrap">
+      <svg width="210" height="210" viewBox="0 0 210 210">
+        <circle class="ring-track" cx="105" cy="105" r="93"/>
+        <circle class="ring-fill" id="ringFill" cx="105" cy="105" r="93" stroke="#4ade80"/>
+      </svg>
+      <div class="ring-center">
+        <div class="time-display" id="timeDisplay">20:00</div>
+        <div class="time-sub">remaining</div>
+      </div>
+    </div>
+    <div class="rounds-row" id="dotsRow"></div>
+    <div class="btn-row">
+      <button class="pause-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+    </div>
+    <span class="reset-link" onclick="resetAll()">Reset session</span>
+  </div>
+
+  <div class="card waiting-card" id="waitingCard">
+    <div class="phase-badge" id="waitingBadge"></div>
+    <p class="waiting-title" id="waitingTitle"></p>
+    <p class="waiting-label" id="waitingLabel"></p>
+    <div class="auto-ring-wrap">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle class="auto-track" cx="36" cy="36" r="30"/>
+        <circle class="auto-fill" id="autoFill" cx="36" cy="36" r="30" stroke="#4ade80"/>
+      </svg>
+      <div class="auto-center"><span class="auto-count" id="autoCount">10</span></div>
+    </div>
+    <div class="waiting-btns">
+      <button class="action-btn" id="waitingBtn" onclick="continueNow()"></button>
+      <button class="skip-btn" id="cancelBtn" onclick="cancelAuto()">Cancel auto</button>
+    </div>
+    <span class="reset-link" onclick="resetAll()">Reset session</span>
+  </div>
+
+  <div class="card done-card" id="doneCard">
+    <div class="done-icon">✓</div>
+    <p class="done-title">Session complete</p>
+    <p class="done-sub" id="doneSub"></p>
+    <button class="action-btn study-action" onclick="resetAll()">Start new session</button>
+  </div>
+</div>
+
+<script>
+  const R_MAIN = 93, CIRC_MAIN = 2 * Math.PI * R_MAIN;
+  const R_AUTO = 30, CIRC_AUTO = 2 * Math.PI * R_AUTO;
+  const AUTO_DUR = 10;
+
+  const ring     = document.getElementById('ringFill');
+  const autoFill = document.getElementById('autoFill');
+  ring.style.strokeDasharray      = CIRC_MAIN;
+  ring.style.strokeDashoffset     = CIRC_MAIN;
+  autoFill.style.strokeDasharray  = CIRC_AUTO;
+  autoFill.style.strokeDashoffset = 0;
+
+  let studyPerRound, restPerRound, totalRounds;
+  let currentRound = 1, phase = 'study';
+  let phaseDuration = 0;
+  let startTime = null, pausedAt = 0, elapsed = 0;
+  let rafId = null, paused = false;
+  let autoRafId = null, autoStart = null, autoCancelled = false;
+  let nextPhaseQueued = null;
+
+  function parseMinutes(id) { return Math.max(0.01, parseFloat(document.getElementById(id).value) || 0.01); }
+
+  function fmtMMSS(s) {
+    s = Math.max(0, s);
+    return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(Math.floor(s%60)).padStart(2,'0');
+  }
+
+  function fmtDuration(s) {
+    if (s < 60) return Math.round(s) + 's';
+    const m = Math.floor(s/60), sec = Math.round(s%60);
+    return sec > 0 ? m + 'm ' + sec + 's' : m + 'm';
+  }
+
+  function calcUpdate() {
+    const s = parseMinutes('studyInput'), r = parseMinutes('restInput');
+    const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
+    document.getElementById('calcStudy').textContent = fmtMMSS((s/n)*60);
+    document.getElementById('calcRest').textContent  = fmtMMSS((r/n)*60);
+  }
+  ['studyInput','restInput','roundsInput'].forEach(id => document.getElementById(id).addEventListener('input', calcUpdate));
+  calcUpdate();
+
+  function startSession() {
+    const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
+    studyPerRound = (parseMinutes('studyInput')/n)*60;
+    restPerRound  = (parseMinutes('restInput')/n)*60;
+    totalRounds = n; currentRound = 1; phase = 'study';
+    document.getElementById('setupCard').style.display = 'none';
+    buildDots(); beginPhase();
+  }
+
+  function buildDots() {
+    const row = document.getElementById('dotsRow'); row.innerHTML = '';
+    for (let i = 0; i < totalRounds; i++) {
+      const d = document.createElement('div'); d.className='round-dot'; d.id='dot'+i; row.appendChild(d);
+    }
+  }
+
+  function updateDots() {
+    for (let i = 0; i < totalRounds; i++) {
+      const d = document.getElementById('dot'+i); d.className = 'round-dot';
+      if (i < currentRound-1) d.classList.add('done-study');
+      else if (i === currentRound-1) d.classList.add('active');
+    }
+  }
+
+  function beginPhase() {
+    cancelAnimationFrame(rafId); cancelAnimationFrame(autoRafId);
+    paused = false; elapsed = 0; startTime = null; pausedAt = 0;
+    document.getElementById('pauseBtn').textContent = 'Pause';
+    phaseDuration = phase === 'study' ? studyPerRound : restPerRound;
+    document.getElementById('timerCard').style.display = 'block';
+    document.getElementById('waitingCard').style.display = 'none';
+    document.getElementById('doneCard').style.display = 'none';
+    const badge = document.getElementById('phaseBadge');
+    if (phase === 'study') {
+      badge.textContent='Studying'; badge.className='phase-badge phase-study'; ring.style.stroke='#4ade80';
+    } else {
+      badge.textContent='Resting'; badge.className='phase-badge phase-rest'; ring.style.stroke='#60a5fa';
+    }
+    document.getElementById('roundLabel').textContent = 'Round '+currentRound+' of '+totalRounds;
+    updateDots(); renderFrame(0);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function renderFrame(elapsedSecs) {
+    document.getElementById('timeDisplay').textContent = fmtMMSS(phaseDuration - elapsedSecs);
+    ring.style.strokeDashoffset = CIRC_MAIN * (1 - Math.min(1, elapsedSecs / phaseDuration));
+  }
+
+  function tick(ts) {
+    if (startTime === null) startTime = ts;
+    elapsed = (ts - startTime) / 1000;
+    renderFrame(elapsed);
+    if (elapsed >= phaseDuration) { phaseEnd(); return; }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function phaseEnd() {
+    cancelAnimationFrame(rafId);
+    document.getElementById('timerCard').style.display = 'none';
+    if (phase === 'study') {
+      if (currentRound < totalRounds) beginWaiting('rest');
+      else showDone();
+    } else {
+      currentRound++;
+      beginWaiting('study');
+    }
+  }
+
+  function beginWaiting(nextPhase) {
+    nextPhaseQueued = nextPhase;
+    autoCancelled = false;
+    autoStart = null;
+    document.getElementById('waitingCard').style.display = 'block';
+
+    const badge = document.getElementById('waitingBadge');
+    const btn   = document.getElementById('waitingBtn');
+    const title = document.getElementById('waitingTitle');
+    const lbl   = document.getElementById('waitingLabel');
+    const cancelBtn = document.getElementById('cancelBtn');
+    cancelBtn.textContent = 'Cancel auto';
+    cancelBtn.style.color = '';
+    cancelBtn.style.cursor = '';
+    cancelBtn.onclick = cancelAuto;
+    autoFill.style.stroke = nextPhase === 'rest' ? '#60a5fa' : '#4ade80';
+
+    if (nextPhase === 'rest') {
+      badge.textContent='Study complete'; badge.className='phase-badge phase-study';
+      title.textContent='Round '+currentRound+' done — time to rest!';
+      lbl.textContent='Next: '+fmtDuration(restPerRound)+' of rest.';
+      btn.textContent='Start rest now'; btn.className='action-btn rest-action';
+    } else {
+      badge.textContent='Rest complete'; badge.className='phase-badge phase-rest';
+      title.textContent='Round '+(currentRound-1)+' finished!';
+      lbl.textContent='Next: '+fmtDuration(studyPerRound)+' of studying. Round '+currentRound+' of '+totalRounds+'.';
+      btn.textContent='Start studying now'; btn.className='action-btn study-action';
+    }
+
+    autoFill.style.strokeDashoffset = 0;
+    document.getElementById('autoCount').textContent = AUTO_DUR;
+    autoRafId = requestAnimationFrame(autoTick);
+  }
+
+  function autoTick(ts) {
+    if (autoCancelled) return;
+    if (autoStart === null) autoStart = ts;
+    const e = (ts - autoStart) / 1000;
+    const remaining = Math.max(0, AUTO_DUR - e);
+    document.getElementById('autoCount').textContent = Math.ceil(remaining);
+    autoFill.style.strokeDashoffset = CIRC_AUTO * (e / AUTO_DUR);
+    if (e >= AUTO_DUR) { continueNow(); return; }
+    autoRafId = requestAnimationFrame(autoTick);
+  }
+
+  function continueNow() {
+    cancelAnimationFrame(autoRafId);
+    autoCancelled = true;
+    document.getElementById('waitingCard').style.display = 'none';
+    phase = nextPhaseQueued;
+    beginPhase();
+  }
+
+  function cancelAuto() {
+    cancelAnimationFrame(autoRafId);
+    autoCancelled = true;
+    const cancelBtn = document.getElementById('cancelBtn');
+    cancelBtn.textContent = 'Auto cancelled';
+    cancelBtn.style.color = '#444';
+    cancelBtn.style.cursor = 'default';
+    cancelBtn.onclick = null;
+    document.getElementById('autoCount').textContent = '–';
+    autoFill.style.strokeDashoffset = CIRC_AUTO;
+  }
+
+  function togglePause() {
+    paused = !paused;
+    if (paused) {
+      cancelAnimationFrame(rafId); pausedAt = elapsed;
+      document.getElementById('pauseBtn').textContent = 'Resume';
+    } else {
+      document.getElementById('pauseBtn').textContent = 'Pause';
+      rafId = requestAnimationFrame(function(ts) { startTime = ts - pausedAt*1000; tick(ts); });
+    }
+  }
+
+  function showDone() {
+    document.getElementById('doneCard').style.display = 'block';
+    document.getElementById('doneSub').textContent =
+      totalRounds+' rounds · '+fmtDuration(parseMinutes('studyInput')*60)+' studied · '+fmtDuration(parseMinutes('restInput')*60)+' rest';
+  }
+
+  function resetAll() {
+    cancelAnimationFrame(rafId); cancelAnimationFrame(autoRafId);
+    paused = false; elapsed = 0; startTime = null; autoCancelled = true;
+    ['timerCard','waitingCard','doneCard'].forEach(id => document.getElementById(id).style.display='none');
+    document.getElementById('setupCard').style.display = 'block';
+    calcUpdate();
+  }
+</script>
+</body>
+</html>
