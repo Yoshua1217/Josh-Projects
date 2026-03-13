@@ -3,20 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pomodoro Timer</title>
+  <title>Pomodoro timer</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', -apple-system, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
     .wrap { width: 100%; max-width: 480px; }
     .title { font-size: 22px; font-weight: 500; color: #fff; margin-bottom: 0.25rem; }
     .subtitle { font-size: 14px; color: #666; margin-bottom: 2rem; font-weight: 300; }
@@ -28,8 +19,10 @@
     .calc-row { background: #1a1a1a; border-radius: 8px; padding: 12px 16px; display: flex; gap: 1.5rem; flex-wrap: wrap; }
     .calc-item { font-size: 13px; color: #666; }
     .calc-item span { font-weight: 500; color: #ccc; font-family: 'DM Mono', monospace; font-size: 12px; }
-    .start-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; background: #fff; color: #111; cursor: pointer; transition: opacity 0.15s; margin-top: 1.25rem; letter-spacing: 0.01em; }
+    .start-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; background: #fff; color: #111; cursor: pointer; transition: opacity 0.15s; margin-top: 1.25rem; }
     .start-btn:hover { opacity: 0.85; }
+    .kbd-hint { font-size: 11px; color: #444; text-align: center; margin-top: 0.75rem; letter-spacing: 0.02em; }
+    .kbd-hint kbd { background: #1a1a1a; border: 0.5px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 1px 5px; font-family: 'DM Mono', monospace; font-size: 10px; color: #666; }
 
     .timer-card { display: none; text-align: center; }
     .phase-badge { display: inline-block; padding: 5px 16px; border-radius: 99px; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.25rem; }
@@ -43,7 +36,11 @@
     .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; }
     .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
     .time-display { font-size: 46px; font-weight: 400; font-family: 'DM Mono', monospace; color: #fff; letter-spacing: -1px; line-height: 1; }
-    .time-sub { font-size: 11px; color: #444; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 400; }
+    .time-sub { font-size: 11px; color: #444; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    @keyframes pulse-ring { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .ring-fill.paused-study { animation: pulse-ring 2.2s ease-in-out infinite; }
+    .ring-fill.paused-rest  { animation: pulse-ring 2.2s ease-in-out infinite; }
 
     .rounds-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .round-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); background: transparent; transition: background 0.3s, border-color 0.3s; }
@@ -52,23 +49,21 @@
     .round-dot.active     { border-color: rgba(255,255,255,0.6); }
 
     .btn-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .pause-btn { padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #666; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em; }
+    .pause-btn { padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #666; cursor: pointer; transition: opacity 0.15s; }
     .pause-btn:hover { opacity: 0.7; }
-    .reset-link { display: block; margin-top: 1.25rem; font-size: 12px; color: #444; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; letter-spacing: 0.02em; }
+    .reset-link { display: block; margin-top: 1.25rem; font-size: 12px; color: #444; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
     .waiting-card { display: none; text-align: center; }
     .waiting-title { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
     .waiting-label { font-size: 14px; color: #666; margin-bottom: 1.5rem; font-weight: 300; }
-
     .auto-ring-wrap { position: relative; width: 72px; height: 72px; margin: 0 auto 1.25rem; }
     .auto-ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
     .auto-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 4; }
     .auto-fill  { fill: none; stroke-width: 4; stroke-linecap: round; }
     .auto-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
     .auto-count { font-size: 22px; font-weight: 400; font-family: 'DM Mono', monospace; color: #fff; }
-
     .waiting-btns { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    .action-btn { padding: 11px 24px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.01em; }
+    .action-btn { padding: 11px 24px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: none; cursor: pointer; transition: opacity 0.15s; }
     .action-btn:hover { opacity: 0.85; }
     .action-btn.study-action { background: #4ade80; color: #111; }
     .action-btn.rest-action  { background: #60a5fa; color: #111; }
@@ -76,9 +71,16 @@
     .skip-btn:hover { opacity: 0.7; }
 
     .done-card { display: none; text-align: center; }
-    .done-icon  { font-size: 28px; margin-bottom: 1rem; }
-    .done-title { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; color: #fff; letter-spacing: -0.01em; }
+    .done-icon  { font-size: 28px; margin-bottom: 0.75rem; }
+    .done-title { font-size: 20px; font-weight: 500; color: #fff; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
     .done-sub   { font-size: 14px; color: #555; margin-bottom: 1.5rem; font-weight: 300; }
+    .stat-grid  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .stat-cell  { background: #1a1a1a; border-radius: 10px; padding: 14px 10px; }
+    .stat-val   { font-size: 22px; font-weight: 400; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 4px; }
+    .stat-lbl   { font-size: 10px; color: #555; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 500; }
+    .stat-cell.green .stat-val { color: #4ade80; }
+    .stat-cell.blue  .stat-val { color: #60a5fa; }
+    .stat-cell.white .stat-val { color: #ccc; }
 
     @media (max-width: 380px) { .input-row { grid-template-columns: 1fr 1fr; } }
   </style>
@@ -99,6 +101,7 @@
       <div class="calc-item">Rest per round: <span id="calcRest">10:00</span></div>
     </div>
     <button class="start-btn" onclick="startSession()">Start session</button>
+    <p class="kbd-hint" style="margin-top:1rem;"><kbd>Space</kbd> pause &nbsp;·&nbsp; <kbd>Enter</kbd> continue &nbsp;·&nbsp; <kbd>R</kbd> reset</p>
   </div>
 
   <div class="card timer-card" id="timerCard">
@@ -111,7 +114,7 @@
       </svg>
       <div class="ring-center">
         <div class="time-display" id="timeDisplay">20:00</div>
-        <div class="time-sub">remaining</div>
+        <div class="time-sub" id="timeSub">remaining</div>
       </div>
     </div>
     <div class="rounds-row" id="dotsRow"></div>
@@ -143,6 +146,11 @@
     <div class="done-icon">✓</div>
     <p class="done-title">Session complete</p>
     <p class="done-sub" id="doneSub"></p>
+    <div class="stat-grid">
+      <div class="stat-cell green"><div class="stat-val" id="statStudy">—</div><div class="stat-lbl">Studied</div></div>
+      <div class="stat-cell blue"><div class="stat-val" id="statRest">—</div><div class="stat-lbl">Rested</div></div>
+      <div class="stat-cell white"><div class="stat-val" id="statRounds">—</div><div class="stat-lbl">Rounds</div></div>
+    </div>
     <button class="action-btn study-action" onclick="resetAll()">Start new session</button>
   </div>
 </div>
@@ -166,6 +174,7 @@
   let rafId = null, paused = false;
   let autoRafId = null, autoStart = null, autoCancelled = false;
   let nextPhaseQueued = null;
+  let screen = 'setup';
 
   function parseMinutes(id) { return Math.max(0.01, parseFloat(document.getElementById(id).value) || 0.01); }
 
@@ -180,6 +189,8 @@
     return sec > 0 ? m + 'm ' + sec + 's' : m + 'm';
   }
 
+  function setTitle(t) { try { document.title = t; } catch(e) {} }
+
   function calcUpdate() {
     const s = parseMinutes('studyInput'), r = parseMinutes('restInput');
     const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
@@ -189,12 +200,17 @@
   ['studyInput','restInput','roundsInput'].forEach(id => document.getElementById(id).addEventListener('input', calcUpdate));
   calcUpdate();
 
+  function showOnly(id) {
+    ['setupCard','timerCard','waitingCard','doneCard'].forEach(c =>
+      document.getElementById(c).style.display = c === id ? 'block' : 'none');
+    screen = { setupCard:'setup', timerCard:'timer', waitingCard:'waiting', doneCard:'done' }[id];
+  }
+
   function startSession() {
     const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
     studyPerRound = (parseMinutes('studyInput')/n)*60;
     restPerRound  = (parseMinutes('restInput')/n)*60;
     totalRounds = n; currentRound = 1; phase = 'study';
-    document.getElementById('setupCard').style.display = 'none';
     buildDots(); beginPhase();
   }
 
@@ -218,9 +234,8 @@
     paused = false; elapsed = 0; startTime = null; pausedAt = 0;
     document.getElementById('pauseBtn').textContent = 'Pause';
     phaseDuration = phase === 'study' ? studyPerRound : restPerRound;
-    document.getElementById('timerCard').style.display = 'block';
-    document.getElementById('waitingCard').style.display = 'none';
-    document.getElementById('doneCard').style.display = 'none';
+    showOnly('timerCard');
+    ring.className = 'ring-fill';
     const badge = document.getElementById('phaseBadge');
     if (phase === 'study') {
       badge.textContent='Studying'; badge.className='phase-badge phase-study'; ring.style.stroke='#4ade80';
@@ -233,8 +248,12 @@
   }
 
   function renderFrame(elapsedSecs) {
-    document.getElementById('timeDisplay').textContent = fmtMMSS(phaseDuration - elapsedSecs);
+    const remaining = Math.max(0, phaseDuration - elapsedSecs);
+    const mm = fmtMMSS(remaining);
+    document.getElementById('timeDisplay').textContent = mm;
+    document.getElementById('timeSub').textContent = paused ? 'paused' : 'remaining';
     ring.style.strokeDashoffset = CIRC_MAIN * (1 - Math.min(1, elapsedSecs / phaseDuration));
+    setTitle(mm + (phase === 'study' ? ' · studying' : ' · resting') + (paused ? ' ⏸' : ''));
   }
 
   function tick(ts) {
@@ -247,45 +266,34 @@
 
   function phaseEnd() {
     cancelAnimationFrame(rafId);
-    document.getElementById('timerCard').style.display = 'none';
     if (phase === 'study') {
-      if (currentRound < totalRounds) beginWaiting('rest');
-      else showDone();
+      currentRound < totalRounds ? beginWaiting('rest') : showDone();
     } else {
-      currentRound++;
-      beginWaiting('study');
+      currentRound++; beginWaiting('study');
     }
   }
 
   function beginWaiting(nextPhase) {
-    nextPhaseQueued = nextPhase;
-    autoCancelled = false;
-    autoStart = null;
-    document.getElementById('waitingCard').style.display = 'block';
-
-    const badge = document.getElementById('waitingBadge');
-    const btn   = document.getElementById('waitingBtn');
-    const title = document.getElementById('waitingTitle');
-    const lbl   = document.getElementById('waitingLabel');
+    nextPhaseQueued = nextPhase; autoCancelled = false; autoStart = null;
+    showOnly('waitingCard');
+    setTitle('10s · up next: ' + (nextPhase === 'rest' ? 'rest' : 'study'));
     const cancelBtn = document.getElementById('cancelBtn');
-    cancelBtn.textContent = 'Cancel auto';
-    cancelBtn.style.color = '';
-    cancelBtn.style.cursor = '';
-    cancelBtn.onclick = cancelAuto;
+    cancelBtn.textContent = 'Cancel auto'; cancelBtn.style.color = ''; cancelBtn.style.cursor = ''; cancelBtn.onclick = cancelAuto;
     autoFill.style.stroke = nextPhase === 'rest' ? '#60a5fa' : '#4ade80';
-
+    const btn = document.getElementById('waitingBtn');
     if (nextPhase === 'rest') {
-      badge.textContent='Study complete'; badge.className='phase-badge phase-study';
-      title.textContent='Round '+currentRound+' done — time to rest!';
-      lbl.textContent='Next: '+fmtDuration(restPerRound)+' of rest.';
+      document.getElementById('waitingBadge').textContent='Study complete';
+      document.getElementById('waitingBadge').className='phase-badge phase-study';
+      document.getElementById('waitingTitle').textContent='Round '+currentRound+' done — time to rest!';
+      document.getElementById('waitingLabel').textContent='Next: '+fmtDuration(restPerRound)+' of rest.';
       btn.textContent='Start rest now'; btn.className='action-btn rest-action';
     } else {
-      badge.textContent='Rest complete'; badge.className='phase-badge phase-rest';
-      title.textContent='Round '+(currentRound-1)+' finished!';
-      lbl.textContent='Next: '+fmtDuration(studyPerRound)+' of studying. Round '+currentRound+' of '+totalRounds+'.';
+      document.getElementById('waitingBadge').textContent='Rest complete';
+      document.getElementById('waitingBadge').className='phase-badge phase-rest';
+      document.getElementById('waitingTitle').textContent='Round '+(currentRound-1)+' finished!';
+      document.getElementById('waitingLabel').textContent='Next: '+fmtDuration(studyPerRound)+' of studying. Round '+currentRound+' of '+totalRounds+'.';
       btn.textContent='Start studying now'; btn.className='action-btn study-action';
     }
-
     autoFill.style.strokeDashoffset = 0;
     document.getElementById('autoCount').textContent = AUTO_DUR;
     autoRafId = requestAnimationFrame(autoTick);
@@ -298,54 +306,64 @@
     const remaining = Math.max(0, AUTO_DUR - e);
     document.getElementById('autoCount').textContent = Math.ceil(remaining);
     autoFill.style.strokeDashoffset = CIRC_AUTO * (e / AUTO_DUR);
+    setTitle(Math.ceil(remaining) + 's · up next: ' + (nextPhaseQueued === 'rest' ? 'rest' : 'study'));
     if (e >= AUTO_DUR) { continueNow(); return; }
     autoRafId = requestAnimationFrame(autoTick);
   }
 
   function continueNow() {
-    cancelAnimationFrame(autoRafId);
-    autoCancelled = true;
-    document.getElementById('waitingCard').style.display = 'none';
-    phase = nextPhaseQueued;
-    beginPhase();
+    cancelAnimationFrame(autoRafId); autoCancelled = true;
+    phase = nextPhaseQueued; beginPhase();
   }
 
   function cancelAuto() {
-    cancelAnimationFrame(autoRafId);
-    autoCancelled = true;
+    cancelAnimationFrame(autoRafId); autoCancelled = true;
     const cancelBtn = document.getElementById('cancelBtn');
-    cancelBtn.textContent = 'Auto cancelled';
-    cancelBtn.style.color = '#444';
-    cancelBtn.style.cursor = 'default';
-    cancelBtn.onclick = null;
+    cancelBtn.textContent = 'Auto cancelled'; cancelBtn.style.color = '#444';
+    cancelBtn.style.cursor = 'default'; cancelBtn.onclick = null;
     document.getElementById('autoCount').textContent = '–';
     autoFill.style.strokeDashoffset = CIRC_AUTO;
   }
 
   function togglePause() {
+    if (screen !== 'timer') return;
     paused = !paused;
     if (paused) {
       cancelAnimationFrame(rafId); pausedAt = elapsed;
       document.getElementById('pauseBtn').textContent = 'Resume';
+      ring.classList.add(phase === 'study' ? 'paused-study' : 'paused-rest');
+      renderFrame(elapsed);
     } else {
+      ring.className = 'ring-fill';
       document.getElementById('pauseBtn').textContent = 'Pause';
       rafId = requestAnimationFrame(function(ts) { startTime = ts - pausedAt*1000; tick(ts); });
     }
   }
 
   function showDone() {
-    document.getElementById('doneCard').style.display = 'block';
-    document.getElementById('doneSub').textContent =
-      totalRounds+' rounds · '+fmtDuration(parseMinutes('studyInput')*60)+' studied · '+fmtDuration(parseMinutes('restInput')*60)+' rest';
+    showOnly('doneCard');
+    setTitle('✓ Session complete!');
+    document.getElementById('doneSub').textContent = totalRounds + ' rounds completed';
+    document.getElementById('statStudy').textContent  = fmtDuration(parseMinutes('studyInput')*60);
+    document.getElementById('statRest').textContent   = fmtDuration(parseMinutes('restInput')*60);
+    document.getElementById('statRounds').textContent = totalRounds;
   }
 
   function resetAll() {
     cancelAnimationFrame(rafId); cancelAnimationFrame(autoRafId);
     paused = false; elapsed = 0; startTime = null; autoCancelled = true;
-    ['timerCard','waitingCard','doneCard'].forEach(id => document.getElementById(id).style.display='none');
-    document.getElementById('setupCard').style.display = 'block';
+    ring.className = 'ring-fill';
+    showOnly('setupCard');
+    setTitle('Pomodoro timer');
     calcUpdate();
   }
+
+  document.addEventListener('keydown', function(e) {
+    if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+    if (e.code === 'Enter') { e.preventDefault(); if (screen === 'waiting') continueNow(); }
+    if (e.code === 'KeyR')  { e.preventDefault(); resetAll(); }
+  });
 </script>
 </body>
 </html>
