@@ -39,8 +39,7 @@
     .time-sub { font-size: 11px; color: #444; letter-spacing: 0.06em; text-transform: uppercase; }
 
     @keyframes pulse-ring { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .ring-fill.paused-study { animation: pulse-ring 2.2s ease-in-out infinite; }
-    .ring-fill.paused-rest  { animation: pulse-ring 2.2s ease-in-out infinite; }
+    .ring-fill.paused-anim { animation: pulse-ring 2.2s ease-in-out infinite; }
 
     .rounds-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .round-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); background: transparent; transition: background 0.3s, border-color 0.3s; }
@@ -51,7 +50,15 @@
     .btn-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
     .pause-btn { padding: 10px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #666; cursor: pointer; transition: opacity 0.15s; }
     .pause-btn:hover { opacity: 0.7; }
-    .reset-link { display: block; margin-top: 1.25rem; font-size: 12px; color: #444; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+    .reset-area { margin-top: 1.25rem; min-height: 22px; text-align: center; }
+    .reset-link { font-size: 12px; color: #444; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; }
+    .reset-confirm { display: none; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .reset-confirm.visible { display: flex; }
+    .reset-confirm-msg { font-size: 12px; color: #888; }
+    .reset-confirm-msg kbd { background: #1a1a1a; border: 0.5px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 1px 5px; font-family: 'DM Mono', monospace; font-size: 10px; color: #aaa; }
+    .confirm-yes { font-size: 12px; color: #f87171; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+    .confirm-no  { font-size: 12px; color: #555; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
 
     .waiting-card { display: none; text-align: center; }
     .waiting-title { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
@@ -67,8 +74,7 @@
     .action-btn:hover { opacity: 0.85; }
     .action-btn.study-action { background: #4ade80; color: #111; }
     .action-btn.rest-action  { background: #60a5fa; color: #111; }
-    .skip-btn { padding: 11px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #555; cursor: pointer; transition: opacity 0.15s; }
-    .skip-btn:hover { opacity: 0.7; }
+    .skip-btn { padding: 11px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.12); background: transparent; color: #555; cursor: pointer; }
 
     .done-card { display: none; text-align: center; }
     .done-icon  { font-size: 28px; margin-bottom: 0.75rem; }
@@ -101,7 +107,7 @@
       <div class="calc-item">Rest per round: <span id="calcRest">10:00</span></div>
     </div>
     <button class="start-btn" onclick="startSession()">Start session</button>
-    <p class="kbd-hint" style="margin-top:1rem;"><kbd>Space</kbd> pause &nbsp;·&nbsp; <kbd>Enter</kbd> continue &nbsp;·&nbsp; <kbd>R</kbd> reset</p>
+    <p class="kbd-hint" style="margin-top:1rem;"><kbd>Space</kbd> pause · <kbd>Enter</kbd> continue · <kbd>R</kbd> reset</p>
   </div>
 
   <div class="card timer-card" id="timerCard">
@@ -121,7 +127,14 @@
     <div class="btn-row">
       <button class="pause-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
     </div>
-    <span class="reset-link" onclick="resetAll()">Reset session</span>
+    <div class="reset-area">
+      <button class="reset-link" id="resetLink" onclick="askReset()">Reset session</button>
+      <div class="reset-confirm" id="resetConfirm">
+        <span class="reset-confirm-msg">Reset? <kbd>R</kbd> confirm · <kbd>Space</kbd> resume</span>
+        <button class="confirm-yes" onclick="confirmReset()">Reset</button>
+        <button class="confirm-no" onclick="cancelReset()">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <div class="card waiting-card" id="waitingCard">
@@ -139,7 +152,14 @@
       <button class="action-btn" id="waitingBtn" onclick="continueNow()"></button>
       <button class="skip-btn" id="cancelBtn" onclick="cancelAuto()">Cancel auto</button>
     </div>
-    <span class="reset-link" onclick="resetAll()">Reset session</span>
+    <div class="reset-area">
+      <button class="reset-link" id="resetLinkW" onclick="askReset()">Reset session</button>
+      <div class="reset-confirm" id="resetConfirmW">
+        <span class="reset-confirm-msg">Reset? <kbd>R</kbd> confirm · <kbd>Esc</kbd> cancel</span>
+        <button class="confirm-yes" onclick="confirmReset()">Reset</button>
+        <button class="confirm-no" onclick="cancelReset()">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <div class="card done-card" id="doneCard">
@@ -151,7 +171,7 @@
       <div class="stat-cell blue"><div class="stat-val" id="statRest">—</div><div class="stat-lbl">Rested</div></div>
       <div class="stat-cell white"><div class="stat-val" id="statRounds">—</div><div class="stat-lbl">Rounds</div></div>
     </div>
-    <button class="action-btn study-action" onclick="resetAll()">Start new session</button>
+    <button class="action-btn study-action" onclick="confirmReset()">Start new session</button>
   </div>
 </div>
 
@@ -160,128 +180,110 @@
   const R_AUTO = 30, CIRC_AUTO = 2 * Math.PI * R_AUTO;
   const AUTO_DUR = 10;
 
-  const ring     = document.getElementById('ringFill');
+  const ring = document.getElementById('ringFill');
   const autoFill = document.getElementById('autoFill');
-  ring.style.strokeDasharray      = CIRC_MAIN;
-  ring.style.strokeDashoffset     = CIRC_MAIN;
-  autoFill.style.strokeDasharray  = CIRC_AUTO;
+  ring.style.strokeDasharray = CIRC_MAIN;
+  ring.style.strokeDashoffset = CIRC_MAIN;
+  autoFill.style.strokeDasharray = CIRC_AUTO;
   autoFill.style.strokeDashoffset = 0;
 
   let studyPerRound, restPerRound, totalRounds;
-  let currentRound = 1, phase = 'study';
-  let phaseDuration = 0;
+  let currentRound = 1, phase = 'study', phaseDuration = 0;
   let startTime = null, pausedAt = 0, elapsed = 0;
   let rafId = null, paused = false;
   let autoRafId = null, autoStart = null, autoCancelled = false;
   let nextPhaseQueued = null;
   let screen = 'setup';
+  let pendingReset = false;
+  let wasRunningBeforeReset = false;
 
   function parseMinutes(id) { return Math.max(0.01, parseFloat(document.getElementById(id).value) || 0.01); }
-
-  function fmtMMSS(s) {
-    s = Math.max(0, s);
-    return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(Math.floor(s%60)).padStart(2,'0');
-  }
-
-  function fmtDuration(s) {
-    if (s < 60) return Math.round(s) + 's';
-    const m = Math.floor(s/60), sec = Math.round(s%60);
-    return sec > 0 ? m + 'm ' + sec + 's' : m + 'm';
-  }
-
+  function fmtMMSS(s) { s = Math.max(0,s); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0'); }
+  function fmtDuration(s) { if(s<60) return Math.round(s)+'s'; const m=Math.floor(s/60),sec=Math.round(s%60); return sec>0?m+'m '+sec+'s':m+'m'; }
   function setTitle(t) { try { document.title = t; } catch(e) {} }
 
   function calcUpdate() {
-    const s = parseMinutes('studyInput'), r = parseMinutes('restInput');
-    const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
-    document.getElementById('calcStudy').textContent = fmtMMSS((s/n)*60);
-    document.getElementById('calcRest').textContent  = fmtMMSS((r/n)*60);
+    const s=parseMinutes('studyInput'), r=parseMinutes('restInput');
+    const n=Math.max(1,parseInt(document.getElementById('roundsInput').value)||1);
+    document.getElementById('calcStudy').textContent=fmtMMSS((s/n)*60);
+    document.getElementById('calcRest').textContent=fmtMMSS((r/n)*60);
   }
-  ['studyInput','restInput','roundsInput'].forEach(id => document.getElementById(id).addEventListener('input', calcUpdate));
+  ['studyInput','restInput','roundsInput'].forEach(id=>document.getElementById(id).addEventListener('input',calcUpdate));
   calcUpdate();
 
   function showOnly(id) {
-    ['setupCard','timerCard','waitingCard','doneCard'].forEach(c =>
-      document.getElementById(c).style.display = c === id ? 'block' : 'none');
-    screen = { setupCard:'setup', timerCard:'timer', waitingCard:'waiting', doneCard:'done' }[id];
+    ['setupCard','timerCard','waitingCard','doneCard'].forEach(c=>document.getElementById(c).style.display=c===id?'block':'none');
+    screen={setupCard:'setup',timerCard:'timer',waitingCard:'waiting',doneCard:'done'}[id];
+    hideResetConfirm();
   }
 
   function startSession() {
-    const n = Math.max(1, parseInt(document.getElementById('roundsInput').value)||1);
-    studyPerRound = (parseMinutes('studyInput')/n)*60;
-    restPerRound  = (parseMinutes('restInput')/n)*60;
-    totalRounds = n; currentRound = 1; phase = 'study';
+    const n=Math.max(1,parseInt(document.getElementById('roundsInput').value)||1);
+    studyPerRound=(parseMinutes('studyInput')/n)*60;
+    restPerRound=(parseMinutes('restInput')/n)*60;
+    totalRounds=n; currentRound=1; phase='study';
     buildDots(); beginPhase();
   }
 
   function buildDots() {
-    const row = document.getElementById('dotsRow'); row.innerHTML = '';
-    for (let i = 0; i < totalRounds; i++) {
-      const d = document.createElement('div'); d.className='round-dot'; d.id='dot'+i; row.appendChild(d);
-    }
+    const row=document.getElementById('dotsRow'); row.innerHTML='';
+    for(let i=0;i<totalRounds;i++){const d=document.createElement('div');d.className='round-dot';d.id='dot'+i;row.appendChild(d);}
   }
 
   function updateDots() {
-    for (let i = 0; i < totalRounds; i++) {
-      const d = document.getElementById('dot'+i); d.className = 'round-dot';
-      if (i < currentRound-1) d.classList.add('done-study');
-      else if (i === currentRound-1) d.classList.add('active');
+    for(let i=0;i<totalRounds;i++){
+      const d=document.getElementById('dot'+i); d.className='round-dot';
+      if(i<currentRound-1) d.classList.add('done-study');
+      else if(i===currentRound-1) d.classList.add('active');
     }
   }
 
   function beginPhase() {
     cancelAnimationFrame(rafId); cancelAnimationFrame(autoRafId);
-    paused = false; elapsed = 0; startTime = null; pausedAt = 0;
-    document.getElementById('pauseBtn').textContent = 'Pause';
-    phaseDuration = phase === 'study' ? studyPerRound : restPerRound;
+    paused=false; elapsed=0; startTime=null; pausedAt=0;
+    document.getElementById('pauseBtn').textContent='Pause';
+    phaseDuration=phase==='study'?studyPerRound:restPerRound;
     showOnly('timerCard');
-    ring.className = 'ring-fill';
-    const badge = document.getElementById('phaseBadge');
-    if (phase === 'study') {
-      badge.textContent='Studying'; badge.className='phase-badge phase-study'; ring.style.stroke='#4ade80';
-    } else {
-      badge.textContent='Resting'; badge.className='phase-badge phase-rest'; ring.style.stroke='#60a5fa';
-    }
-    document.getElementById('roundLabel').textContent = 'Round '+currentRound+' of '+totalRounds;
+    ring.className='ring-fill';
+    const badge=document.getElementById('phaseBadge');
+    if(phase==='study'){badge.textContent='Studying';badge.className='phase-badge phase-study';ring.style.stroke='#4ade80';}
+    else{badge.textContent='Resting';badge.className='phase-badge phase-rest';ring.style.stroke='#60a5fa';}
+    document.getElementById('roundLabel').textContent='Round '+currentRound+' of '+totalRounds;
     updateDots(); renderFrame(0);
-    rafId = requestAnimationFrame(tick);
+    rafId=requestAnimationFrame(tick);
   }
 
-  function renderFrame(elapsedSecs) {
-    const remaining = Math.max(0, phaseDuration - elapsedSecs);
-    const mm = fmtMMSS(remaining);
-    document.getElementById('timeDisplay').textContent = mm;
-    document.getElementById('timeSub').textContent = paused ? 'paused' : 'remaining';
-    ring.style.strokeDashoffset = CIRC_MAIN * (1 - Math.min(1, elapsedSecs / phaseDuration));
-    setTitle(mm + (phase === 'study' ? ' · studying' : ' · resting') + (paused ? ' ⏸' : ''));
+  function renderFrame(e) {
+    const remaining=Math.max(0,phaseDuration-e), mm=fmtMMSS(remaining);
+    document.getElementById('timeDisplay').textContent=mm;
+    document.getElementById('timeSub').textContent=pendingReset?'reset?':paused?'paused':'remaining';
+    ring.style.strokeDashoffset=CIRC_MAIN*(1-Math.min(1,e/phaseDuration));
+    setTitle(mm+(phase==='study'?' · studying':' · resting')+(paused?' ⏸':''));
   }
 
   function tick(ts) {
-    if (startTime === null) startTime = ts;
-    elapsed = (ts - startTime) / 1000;
+    if(startTime===null) startTime=ts;
+    elapsed=(ts-startTime)/1000;
     renderFrame(elapsed);
-    if (elapsed >= phaseDuration) { phaseEnd(); return; }
-    rafId = requestAnimationFrame(tick);
+    if(elapsed>=phaseDuration){phaseEnd();return;}
+    rafId=requestAnimationFrame(tick);
   }
 
   function phaseEnd() {
     cancelAnimationFrame(rafId);
-    if (phase === 'study') {
-      currentRound < totalRounds ? beginWaiting('rest') : showDone();
-    } else {
-      currentRound++; beginWaiting('study');
-    }
+    if(phase==='study'){currentRound<totalRounds?beginWaiting('rest'):showDone();}
+    else{currentRound++;beginWaiting('study');}
   }
 
   function beginWaiting(nextPhase) {
-    nextPhaseQueued = nextPhase; autoCancelled = false; autoStart = null;
+    nextPhaseQueued=nextPhase; autoCancelled=false; autoStart=null;
     showOnly('waitingCard');
-    setTitle('10s · up next: ' + (nextPhase === 'rest' ? 'rest' : 'study'));
-    const cancelBtn = document.getElementById('cancelBtn');
-    cancelBtn.textContent = 'Cancel auto'; cancelBtn.style.color = ''; cancelBtn.style.cursor = ''; cancelBtn.onclick = cancelAuto;
-    autoFill.style.stroke = nextPhase === 'rest' ? '#60a5fa' : '#4ade80';
-    const btn = document.getElementById('waitingBtn');
-    if (nextPhase === 'rest') {
+    setTitle('10s · up next: '+(nextPhase==='rest'?'rest':'study'));
+    const cancelBtn=document.getElementById('cancelBtn');
+    cancelBtn.textContent='Cancel auto'; cancelBtn.style.color=''; cancelBtn.style.cursor=''; cancelBtn.onclick=cancelAuto;
+    autoFill.style.stroke=nextPhase==='rest'?'#60a5fa':'#4ade80';
+    const btn=document.getElementById('waitingBtn');
+    if(nextPhase==='rest'){
       document.getElementById('waitingBadge').textContent='Study complete';
       document.getElementById('waitingBadge').className='phase-badge phase-study';
       document.getElementById('waitingTitle').textContent='Round '+currentRound+' done — time to rest!';
@@ -294,75 +296,130 @@
       document.getElementById('waitingLabel').textContent='Next: '+fmtDuration(studyPerRound)+' of studying. Round '+currentRound+' of '+totalRounds+'.';
       btn.textContent='Start studying now'; btn.className='action-btn study-action';
     }
-    autoFill.style.strokeDashoffset = 0;
-    document.getElementById('autoCount').textContent = AUTO_DUR;
-    autoRafId = requestAnimationFrame(autoTick);
+    autoFill.style.strokeDashoffset=0;
+    document.getElementById('autoCount').textContent=AUTO_DUR;
+    autoRafId=requestAnimationFrame(autoTick);
   }
 
   function autoTick(ts) {
-    if (autoCancelled) return;
-    if (autoStart === null) autoStart = ts;
-    const e = (ts - autoStart) / 1000;
-    const remaining = Math.max(0, AUTO_DUR - e);
-    document.getElementById('autoCount').textContent = Math.ceil(remaining);
-    autoFill.style.strokeDashoffset = CIRC_AUTO * (e / AUTO_DUR);
-    setTitle(Math.ceil(remaining) + 's · up next: ' + (nextPhaseQueued === 'rest' ? 'rest' : 'study'));
-    if (e >= AUTO_DUR) { continueNow(); return; }
-    autoRafId = requestAnimationFrame(autoTick);
+    if(autoCancelled) return;
+    if(autoStart===null) autoStart=ts;
+    const e=(ts-autoStart)/1000, remaining=Math.max(0,AUTO_DUR-e);
+    document.getElementById('autoCount').textContent=Math.ceil(remaining);
+    autoFill.style.strokeDashoffset=CIRC_AUTO*(e/AUTO_DUR);
+    setTitle(Math.ceil(remaining)+'s · up next: '+(nextPhaseQueued==='rest'?'rest':'study'));
+    if(e>=AUTO_DUR){continueNow();return;}
+    autoRafId=requestAnimationFrame(autoTick);
   }
 
   function continueNow() {
-    cancelAnimationFrame(autoRafId); autoCancelled = true;
-    phase = nextPhaseQueued; beginPhase();
+    cancelAnimationFrame(autoRafId); autoCancelled=true;
+    phase=nextPhaseQueued; beginPhase();
   }
 
   function cancelAuto() {
-    cancelAnimationFrame(autoRafId); autoCancelled = true;
-    const cancelBtn = document.getElementById('cancelBtn');
-    cancelBtn.textContent = 'Auto cancelled'; cancelBtn.style.color = '#444';
-    cancelBtn.style.cursor = 'default'; cancelBtn.onclick = null;
-    document.getElementById('autoCount').textContent = '–';
-    autoFill.style.strokeDashoffset = CIRC_AUTO;
+    cancelAnimationFrame(autoRafId); autoCancelled=true;
+    const b=document.getElementById('cancelBtn');
+    b.textContent='Auto cancelled'; b.style.color='#444'; b.style.cursor='default'; b.onclick=null;
+    document.getElementById('autoCount').textContent='–';
+    autoFill.style.strokeDashoffset=CIRC_AUTO;
   }
 
   function togglePause() {
-    if (screen !== 'timer') return;
-    paused = !paused;
-    if (paused) {
-      cancelAnimationFrame(rafId); pausedAt = elapsed;
-      document.getElementById('pauseBtn').textContent = 'Resume';
-      ring.classList.add(phase === 'study' ? 'paused-study' : 'paused-rest');
+    if(screen!=='timer') return;
+    if(pendingReset){ cancelReset(); return; }
+    paused=!paused;
+    if(paused){
+      cancelAnimationFrame(rafId); pausedAt=elapsed;
+      document.getElementById('pauseBtn').textContent='Resume';
+      ring.classList.add('paused-anim');
       renderFrame(elapsed);
     } else {
-      ring.className = 'ring-fill';
-      document.getElementById('pauseBtn').textContent = 'Pause';
-      rafId = requestAnimationFrame(function(ts) { startTime = ts - pausedAt*1000; tick(ts); });
+      ring.className='ring-fill';
+      document.getElementById('pauseBtn').textContent='Pause';
+      rafId=requestAnimationFrame(function(ts){startTime=ts-pausedAt*1000;tick(ts);});
     }
   }
 
-  function showDone() {
-    showOnly('doneCard');
-    setTitle('✓ Session complete!');
-    document.getElementById('doneSub').textContent = totalRounds + ' rounds completed';
-    document.getElementById('statStudy').textContent  = fmtDuration(parseMinutes('studyInput')*60);
-    document.getElementById('statRest').textContent   = fmtDuration(parseMinutes('restInput')*60);
-    document.getElementById('statRounds').textContent = totalRounds;
+  function askReset() {
+    if(screen==='done'){confirmReset();return;}
+    pendingReset=true;
+    wasRunningBeforeReset=!paused && screen==='timer';
+    if(wasRunningBeforeReset){
+      cancelAnimationFrame(rafId); pausedAt=elapsed;
+      ring.classList.add('paused-anim');
+    }
+    if(screen==='timer'){
+      document.getElementById('resetLink').style.display='none';
+      document.getElementById('resetConfirm').classList.add('visible');
+      document.getElementById('timeSub').textContent='reset?';
+    } else if(screen==='waiting'){
+      cancelAnimationFrame(autoRafId); autoCancelled=true;
+      document.getElementById('resetLinkW').style.display='none';
+      document.getElementById('resetConfirmW').classList.add('visible');
+    }
   }
 
-  function resetAll() {
+  function cancelReset() {
+    const wasRunning=wasRunningBeforeReset;
+    pendingReset=false; wasRunningBeforeReset=false;
+    hideResetConfirm();
+    if(wasRunning && screen==='timer'){
+      ring.className='ring-fill';
+      document.getElementById('pauseBtn').textContent='Pause';
+      paused=false;
+      rafId=requestAnimationFrame(function(ts){startTime=ts-pausedAt*1000;tick(ts);});
+    }
+  }
+
+  function hideResetConfirm() {
+    pendingReset=false;
+    const rl=document.getElementById('resetLink');
+    if(rl) rl.style.display='';
+    document.getElementById('resetConfirm').classList.remove('visible');
+    const rlw=document.getElementById('resetLinkW');
+    if(rlw) rlw.style.display='';
+    document.getElementById('resetConfirmW').classList.remove('visible');
+  }
+
+  function confirmReset() {
     cancelAnimationFrame(rafId); cancelAnimationFrame(autoRafId);
-    paused = false; elapsed = 0; startTime = null; autoCancelled = true;
-    ring.className = 'ring-fill';
+    paused=false; elapsed=0; startTime=null; autoCancelled=true; pendingReset=false;
+    ring.className='ring-fill';
     showOnly('setupCard');
     setTitle('Pomodoro timer');
     calcUpdate();
   }
 
+  function showDone() {
+    showOnly('doneCard');
+    setTitle('✓ Session complete!');
+    document.getElementById('doneSub').textContent=totalRounds+' rounds completed';
+    document.getElementById('statStudy').textContent=fmtDuration(parseMinutes('studyInput')*60);
+    document.getElementById('statRest').textContent=fmtDuration(parseMinutes('restInput')*60);
+    document.getElementById('statRounds').textContent=totalRounds;
+  }
+
   document.addEventListener('keydown', function(e) {
-    if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-    if (e.code === 'Space') { e.preventDefault(); togglePause(); }
-    if (e.code === 'Enter') { e.preventDefault(); if (screen === 'waiting') continueNow(); }
-    if (e.code === 'KeyR')  { e.preventDefault(); resetAll(); }
+    if(['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+    if(e.code==='Space') {
+      e.preventDefault();
+      if(pendingReset) cancelReset();       // Space = cancel reset + resume
+      else togglePause();
+    }
+    if(e.code==='KeyR') {
+      e.preventDefault();
+      if(pendingReset) confirmReset();      // R when pending = confirm reset
+      else if(screen==='timer'||screen==='waiting') askReset();
+    }
+    if(e.code==='Escape') {
+      e.preventDefault();
+      if(pendingReset) cancelReset();
+    }
+    if(e.code==='Enter') {
+      e.preventDefault();
+      if(screen==='waiting'&&!pendingReset) continueNow();
+    }
   });
 </script>
 </body>
